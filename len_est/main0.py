@@ -30,7 +30,10 @@ def main():
         print >> sys.stderr, "missing GTF file"
         sys.exit(1)
         
-    get_loci(gtf_file)
+    gene_loci = get_loci(gtf_file)
+    for gl in gene_loci.itervalues():
+        if len(gl.isoforms) == 1:
+            print gl
     
         
 if __name__ == '__main__':

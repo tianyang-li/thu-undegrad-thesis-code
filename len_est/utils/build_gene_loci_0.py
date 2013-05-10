@@ -10,20 +10,34 @@ from collections import namedtuple
 $start $end
 same as python convetion
 """
-Exon = namedtuple('Exon', ['start', 'end'])
+Exon = namedtuple('Exon',
+                  ['start', 'end'])
+
+"""
+$gene_id 
+ID of gene locus
+"""
+Isoform = namedtuple('Isoform',
+                     ['exons', 'chrom', 'id', 'gene_id'])
 
 
-Isoform = namedtuple('Isoform', ['exons'])
+GeneLocus = namedtuple('GeneLocus',
+                       ['id', 'isoforms', 'chrom'])
 
 
 def get_loci(gtf_file):
     """
     return a dict $gene_loci
     
-        gene_loci[gene_id] = list of gene_id's isoforms
+        gene_loci[gene_id] (dict of isoforms)
+            -> [isof_id]
+                -> Isoform
          
     """
+    
     with open(gtf_file, 'r') as fin:
+        
+        gene_loci = {}
         
         get_gene_id = re.compile(r' gene_id "(\S+)"')
         get_isof_id = re.compile(r'transcript_id "(\S+)"')
@@ -40,9 +54,22 @@ def get_loci(gtf_file):
                 
                 isof_id = get_isof_id.match(line_attrb[1]).group(1)
                 
-                print gene_id, isof_id
+                (gene_loci
+                 .setdefault(gene_id, GeneLocus(id=gene_id,
+                                                chrom=line[0],
+                                                isoforms={}))
+                 .isoforms.setdefault(isof_id, Isoform(exons=[],
+                                                       chrom=line[0],
+                                                       id=isof_id,
+                                                       gene_id=gene_id))
+                 .exons.append(Exon(start=int(line[3]) - 1,
+                                    end=int(line[4]) - 1)))
+        
+        for gl in gene_loci.itervalues():
+            for isof in gl.isoforms.itervalues():
+                isof.exons.sort(key=lambda e: e.start)
                 
-                
+        return gene_loci
             
             
     
