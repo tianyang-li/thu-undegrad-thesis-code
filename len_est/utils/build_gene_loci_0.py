@@ -47,6 +47,8 @@ def get_loci(gtf_file):
             line = line.strip().split("\t")
             
             if line[2] == 'exon':
+                # to use with ENCODE download
+                line[0] = "chr%s" % line[0]
             
                 line_attrb = line[-1].split("; ")
                 
