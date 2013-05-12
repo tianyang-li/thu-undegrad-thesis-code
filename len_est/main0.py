@@ -5,6 +5,13 @@
 # ty@li-tianyang.com
 
 
+"""
+analyze single Illumina 75 bp reads
+"""
+
+
+from __future__ import division
+
 import sys
 import getopt
 
@@ -43,6 +50,7 @@ def main():
     bam = pysam.Samfile(bam_file, 'rb')
     chroms = set(bam.references)
     
+    # TODO: consider splicing???
     for gl in gene_loci.itervalues():
         if gl.chrom in chroms:
             if len(gl.isoforms) == 1:
@@ -50,24 +58,42 @@ def main():
                 if len(isof.exons) == 1:
                     # TODO: tolerate errors in $start and $end?
                     
-                    isof_covered = True
+                    exon = isof.exons[0]
+                    
+                    # TODO: make checking for gaps faster?
+                    reads_connected = False
                     prev_pos = None
                     for col in bam.pileup(isof.chrom,
-                                          isof.exons[0].start,
-                                          isof.exons[0].end):
+                                          exon.start,
+                                          exon.end):
                         if prev_pos != None:
                             if col.pos != prev_pos + 1:
-                                isof_covered = False
+                                reads_connected = False
                                 break
+                        else:
+                            reads_connected = True
+                            
                         prev_pos = col.pos
                     
-                    if isof_covered:
+                    if reads_connected:
                         reads = [rd for rd in bam.fetch(isof.chrom,
-                                                        isof.exons[0].start,
-                                                        isof.exons[0].end)]
-                    
-    
-    
+                                                        exon.start,
+                                                        exon.end)]
+                        no_splice = True
+                        for rd in reads:
+                            if rd.alen > 75:
+                                no_splice = False
+                                break
+                        
+                        # TODO: check isoform doesn't lie within another?
+                        if no_splice:
+                            reads_pos = [rd.pos for rd in reads]
+                            reads_pos.sort()
+                            
+                            if reads_pos[-1] + 75 > exon.end:
+                                print ((exon.end - reads_pos[-1] - 75)
+                                       / (exon.end - exon.start)) 
+
         
 if __name__ == '__main__':
     main()
