@@ -6,6 +6,8 @@ from __future__ import division
 
 from random import randint
 
+from scipy.stats import ks_2samp
+
 
 def unif_stat(samples, lower, higher):
     """
@@ -13,7 +15,7 @@ def unif_stat(samples, lower, higher):
     from a discrete distribution on [$lower, $upper]
     """
     #XXX: how to get this statistic??
-    
+    pass
 
 
 def pval(samples, lower, higher):
