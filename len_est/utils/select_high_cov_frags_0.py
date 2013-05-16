@@ -10,8 +10,10 @@ from math import exp
 def expected_len(cov_param, read_len):
     """
     $cov_param
-        number of reads / effective isoform length
+        (number of reads) / (effective isoform length)
     """
-    return (exp(cov_param * read_len) - 1) / (exp(cov_param) - 1) - read_len
+    return sum(exp(i * cov_param) for i in xrange(read_len)) - read_len
+
+
 
 

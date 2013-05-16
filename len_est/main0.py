@@ -18,6 +18,9 @@ import getopt
 import pysam
 
 from utils.build_gene_loci_0 import get_loci
+from utils.select_high_cov_frags_0 import expected_len
+from utils.len_est_0 import single_reads
+from utils.uniform_test_0 import pval
 
 
 def main():
@@ -50,6 +53,8 @@ def main():
     bam = pysam.Samfile(bam_file, 'rb')
     chroms = set(bam.references)
     
+    print "#eff_start, eff_end, cov_lambda, cov_e_len, est_len, est_start, est_end, pval(reads_pos, eff_start, eff_end - 1)"
+    
     # TODO: consider splicing???
     for gl in gene_loci.itervalues():
         if gl.chrom in chroms:
@@ -79,21 +84,43 @@ def main():
                         reads = [rd for rd in bam.fetch(isof.chrom,
                                                         exon.start,
                                                         exon.end)]
-                        no_splice = True
-                        for rd in reads:
-                            if rd.alen > 75:
-                                no_splice = False
-                                break
                         
-                        # TODO: check isoform doesn't lie within another?
-                        if no_splice:
-                            reads_pos = [rd.pos for rd in reads]
-                            reads_pos.sort()
+                        if len(reads) > 1:
                             
-                            if reads_pos[-1] + 75 > exon.end:
-                                print ((exon.end - reads_pos[-1] - 75)
-                                       / (exon.end - exon.start)) 
-
-        
+                            no_splice = True
+                            for rd in reads:
+                                if rd.alen > 75:
+                                    no_splice = False
+                                    break
+                            
+                            # TODO: check isoform doesn't lie within another?
+                            if no_splice:
+                                reads_pos = [rd.pos for rd in reads]
+                                reads_pos.sort()
+                                
+                                if (reads_pos[-1] + 75 < exon.end
+                                    and reads_pos[0] >= exon.start):
+                                    
+                                    # effective start pos
+                                    eff_start = exon.start
+                                    # effective end pos
+                                    eff_end = exon.end - 75
+                                    
+                                    cov_lambda = len(reads_pos) / (eff_end - eff_start)
+                                    
+                                    # expected contig length given coverage
+                                    try:
+                                        cov_e_len = expected_len(cov_lambda, 75)
+                                    except OverflowError:
+                                        cov_e_len = -1.0
+                                    
+                                    est_len = int(single_reads(reads_pos))
+                                    
+                                    est_start = reads_pos[0] - int((est_len - (reads_pos[-1] - reads_pos[0])) / 2)
+                                    est_end = reads_pos[-1] + int((est_len - (reads_pos[-1] - reads_pos[0])) / 2)
+                                    
+                                    print eff_start, eff_end, cov_lambda, cov_e_len, est_len, est_start, est_end, pval(reads_pos, eff_start, eff_end - 1)
+                                    
+            
 if __name__ == '__main__':
     main()
