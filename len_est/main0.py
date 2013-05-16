@@ -53,7 +53,7 @@ def main():
     bam = pysam.Samfile(bam_file, 'rb')
     chroms = set(bam.references)
     
-    print "#eff_start, eff_end, cov_lambda, cov_e_len, est_len, est_start, est_end, pval(reads_pos, eff_start, eff_end - 1)"
+    print "#reads_pos[0], reads_pos[-1]"
     
     # TODO: consider splicing???
     for gl in gene_loci.itervalues():
@@ -103,14 +103,7 @@ def main():
                                     if (reads_pos[-1] + 75 < exon.end
                                         and reads_pos[0] >= exon.start):
                                         
-                                        counts = [0 for _ in xrange(exon.start, exon.end - 75)]
-                                        
-                                        for pos in reads_pos:
-                                            counts[pos - exon.start] += 1
-                                        
-                                        for c in counts:
-                                            print c,
-                                        print 
+                                        print reads_pos[0], reads_pos[-1]
                                     
             
 if __name__ == '__main__':
