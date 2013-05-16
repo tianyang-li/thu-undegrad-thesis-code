@@ -65,61 +65,52 @@ def main():
                     
                     exon = isof.exons[0]
                     
-                    # TODO: make checking for gaps faster?
-                    reads_connected = False
-                    prev_pos = None
-                    for col in bam.pileup(isof.chrom,
-                                          exon.start,
-                                          exon.end):
-                        if prev_pos != None:
-                            if col.pos != prev_pos + 1:
-                                reads_connected = False
-                                break
-                        else:
-                            reads_connected = True
-                            
-                        prev_pos = col.pos
-                    
-                    if reads_connected:
-                        reads = [rd for rd in bam.fetch(isof.chrom,
-                                                        exon.start,
-                                                        exon.end)]
+                    if exon.start + 75 < exon.end:
                         
-                        if len(reads) > 1:
-                            
-                            no_splice = True
-                            for rd in reads:
-                                if rd.alen > 75:
-                                    no_splice = False
+                        # TODO: make checking for gaps faster?
+                        reads_connected = False
+                        prev_pos = None
+                        for col in bam.pileup(isof.chrom,
+                                              exon.start,
+                                              exon.end):
+                            if prev_pos != None:
+                                if col.pos != prev_pos + 1:
+                                    reads_connected = False
                                     break
-                            
-                            # TODO: check isoform doesn't lie within another?
-                            if no_splice:
-                                reads_pos = [rd.pos for rd in reads]
-                                reads_pos.sort()
+                            else:
+                                reads_connected = True
                                 
-                                if (reads_pos[-1] + 75 < exon.end
-                                    and reads_pos[0] >= exon.start):
+                            prev_pos = col.pos
+                        
+                        if reads_connected:
+                            reads = [rd for rd in bam.fetch(isof.chrom,
+                                                            exon.start,
+                                                            exon.end)]
+                            
+                            if len(reads) > 1:
+                                
+                                no_splice = True
+                                for rd in reads:
+                                    if rd.alen > 75:
+                                        no_splice = False
+                                        break
+                                
+                                # TODO: check isoform doesn't lie within another?
+                                if no_splice:
+                                    reads_pos = [rd.pos for rd in reads]
+                                    reads_pos.sort()
                                     
-                                    # effective start pos
-                                    eff_start = exon.start
-                                    # effective end pos
-                                    eff_end = exon.end - 75
-                                    
-                                    cov_lambda = len(reads_pos) / (eff_end - eff_start)
-                                    
-                                    # expected contig length given coverage
-                                    try:
-                                        cov_e_len = expected_len(cov_lambda, 75)
-                                    except OverflowError:
-                                        cov_e_len = -1.0
-                                    
-                                    est_len = int(single_reads(reads_pos))
-                                    
-                                    est_start = reads_pos[0] - int((est_len - (reads_pos[-1] - reads_pos[0])) / 2)
-                                    est_end = reads_pos[-1] + int((est_len - (reads_pos[-1] - reads_pos[0])) / 2)
-                                    
-                                    print eff_start, eff_end, cov_lambda, cov_e_len, est_len, est_start, est_end, pval(reads_pos, eff_start, eff_end - 1)
+                                    if (reads_pos[-1] + 75 < exon.end
+                                        and reads_pos[0] >= exon.start):
+                                        
+                                        counts = [0 for _ in xrange(exon.start, exon.end - 75)]
+                                        
+                                        for pos in reads_pos:
+                                            counts[pos - exon.start] += 1
+                                        
+                                        for c in counts:
+                                            print c,
+                                        print 
                                     
             
 if __name__ == '__main__':
