@@ -54,7 +54,6 @@ def main():
     chroms = set(bam.references)
     
     print "#reads_pos[0], reads_pos[-1]"
-    
     # TODO: consider splicing???
     for gl in gene_loci.itervalues():
         if gl.chrom in chroms:

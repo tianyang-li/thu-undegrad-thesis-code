@@ -7,22 +7,30 @@ from collections import namedtuple
 
 
 """
-$start $end
+$start $end (integers)
 same as python convetion
 """
 Exon = namedtuple('Exon',
                   ['start', 'end'])
 
+
 """
-$gene_id 
+$gene_id (string)
 ID of gene locus
+
+$exons (list)
 """
 Isoform = namedtuple('Isoform',
                      ['exons', 'chrom', 'id', 'gene_id'])
 
 
+"""
+$isoforms (dictionary)
+
+$exons (list)
+"""
 GeneLocus = namedtuple('GeneLocus',
-                       ['id', 'isoforms', 'chrom'])
+                       ['id', 'isoforms', 'chrom', 'exons'])
 
 
 def get_loci(gtf_file):
@@ -59,7 +67,8 @@ def get_loci(gtf_file):
                 (gene_loci
                  .setdefault(gene_id, GeneLocus(id=gene_id,
                                                 chrom=line[0],
-                                                isoforms={}))
+                                                isoforms={},
+                                                exons=[]))
                  .isoforms.setdefault(isof_id, Isoform(exons=[],
                                                        chrom=line[0],
                                                        id=isof_id,
