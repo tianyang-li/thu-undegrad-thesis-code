@@ -5,6 +5,8 @@
 import re
 from collections import namedtuple
 
+from sort_0 import cmp_to_key
+
 
 """
 $start $end (integers)
@@ -13,6 +15,15 @@ same as python convetion
 class Exon(namedtuple('Exon', ['start', 'end'])):
     def __hash__(self):
         return hash((self.start, self.end))
+    
+
+def exon_cmp(x, y):
+    if x.start == y.start:
+        return x.end - y.end
+    return x.start - y.start
+
+
+ExonKey = cmp_to_key(exon_cmp)
 
 
 """

@@ -17,10 +17,7 @@ import getopt
 
 import pysam
 
-from utils.build_gene_loci_0 import get_loci
-from utils.select_high_cov_frags_0 import expected_len
-from utils.len_est_0 import single_reads
-from utils.uniform_test_0 import pval
+from utils.build_gene_loci_0 import get_loci, ExonKey
 
 
 def main():
@@ -55,15 +52,31 @@ def main():
     
     # TODO: consider splicing???
     for gl in gene_loci.itervalues():
-        if gl.chrom in chroms:
+
+        if gl.chrom not in chroms:
+            continue
+        
+        gl.exons = set([])
+        for isof in gl.isoforms.itervalues():
+            for exon in isof.exons:
+                gl.exons.add(exon)
+        gl.exons = list(gl.exons)
+        gl.exons.sort(key=ExonKey)
+        
+        exon_overlap = False
+        
+        #TODO: split ovrelaping exons into smaller sections???
+        for i in xrange(len(gl.exons) - 1):
+            if gl.exons[i].end > gl.exons[i + 1].start:
+                exon_overlap = True
+                break
             
-            gl.exons = set([])
-            for isof in gl.isoforms.itervalues():
-                for exon in isof.exons:
-                    gl.exons.add(exon)
-            gl.exons = list(gl.exons)
-            gl.exons.sort(key=lambda e: e.start)
-                                    
+        if exon_overlap:
+            continue
+        
+        
+
+            
             
 if __name__ == '__main__':
     main()
