@@ -53,56 +53,16 @@ def main():
     bam = pysam.Samfile(bam_file, 'rb')
     chroms = set(bam.references)
     
-    print "#reads_pos[0], reads_pos[-1]"
     # TODO: consider splicing???
     for gl in gene_loci.itervalues():
         if gl.chrom in chroms:
-            if len(gl.isoforms) == 1:
-                isof = gl.isoforms.values()[0]
-                if len(isof.exons) == 1:
-                    # TODO: tolerate errors in $start and $end?
-                    
-                    exon = isof.exons[0]
-                    
-                    if exon.start + 75 < exon.end:
-                        
-                        # TODO: make checking for gaps faster?
-                        reads_connected = False
-                        prev_pos = None
-                        for col in bam.pileup(isof.chrom,
-                                              exon.start,
-                                              exon.end):
-                            if prev_pos != None:
-                                if col.pos != prev_pos + 1:
-                                    reads_connected = False
-                                    break
-                            else:
-                                reads_connected = True
-                                
-                            prev_pos = col.pos
-                        
-                        if reads_connected:
-                            reads = [rd for rd in bam.fetch(isof.chrom,
-                                                            exon.start,
-                                                            exon.end)]
-                            
-                            if len(reads) > 1:
-                                
-                                no_splice = True
-                                for rd in reads:
-                                    if rd.alen > 75:
-                                        no_splice = False
-                                        break
-                                
-                                # TODO: check isoform doesn't lie within another?
-                                if no_splice:
-                                    reads_pos = [rd.pos for rd in reads]
-                                    reads_pos.sort()
-                                    
-                                    if (reads_pos[-1] + 75 < exon.end
-                                        and reads_pos[0] >= exon.start):
-                                        
-                                        print reads_pos[0], reads_pos[-1]
+            
+            gl.exons = set([])
+            for isof in gl.isoforms.itervalues():
+                for exon in isof.exons:
+                    gl.exons.add(exon)
+            gl.exons = list(gl.exons)
+            gl.exons.sort(key=lambda e: e.start)
                                     
             
 if __name__ == '__main__':

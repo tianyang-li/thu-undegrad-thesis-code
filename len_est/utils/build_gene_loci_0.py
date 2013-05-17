@@ -10,8 +10,9 @@ from collections import namedtuple
 $start $end (integers)
 same as python convetion
 """
-Exon = namedtuple('Exon',
-                  ['start', 'end'])
+class Exon(namedtuple('Exon', ['start', 'end'])):
+    def __hash__(self):
+        return hash((self.start, self.end))
 
 
 """
@@ -29,8 +30,14 @@ $isoforms (dictionary)
 
 $exons (list)
 """
-GeneLocus = namedtuple('GeneLocus',
-                       ['id', 'isoforms', 'chrom', 'exons'])
+class GeneLocus(object):
+    __slots__ = ['id', 'isoforms', 'chrom', 'exons']
+    
+    def __init__(self, gl_id, isoforms, chrom, exons):
+        self.id = gl_id
+        self.isoforms = isoforms
+        self.chrom = chrom
+        self.exons = exons
 
 
 def get_loci(gtf_file):
@@ -65,10 +72,10 @@ def get_loci(gtf_file):
                 isof_id = get_isof_id.match(line_attrb[1]).group(1)
                 
                 (gene_loci
-                 .setdefault(gene_id, GeneLocus(id=gene_id,
+                 .setdefault(gene_id, GeneLocus(gl_id=gene_id,
                                                 chrom=line[0],
                                                 isoforms={},
-                                                exons=[]))
+                                                exons=None))
                  .isoforms.setdefault(isof_id, Isoform(exons=[],
                                                        chrom=line[0],
                                                        id=isof_id,
