@@ -95,8 +95,16 @@ def get_loci(gtf_file):
                                     end=int(line[4]) - 1)))
         
         for gl in gene_loci.itervalues():
+            
             for isof in gl.isoforms.itervalues():
-                isof.exons.sort(key=lambda e: e.start)
+                isof.exons.sort(key=ExonKey)
+            
+            gl.exons = set([])
+            for isof in gl.isoforms.itervalues():
+                for exon in isof.exons:
+                    gl.exons.add(exon)
+            gl.exons = list(gl.exons)
+            gl.exons.sort(key=ExonKey)
                 
         return gene_loci
             

@@ -17,7 +17,7 @@ import getopt
 
 import pysam
 
-from utils.build_gene_loci_0 import get_loci, ExonKey
+from utils.build_gene_loci_0 import get_loci
 
 
 def main():
@@ -55,13 +55,6 @@ def main():
 
         if gl.chrom not in chroms:
             continue
-        
-        gl.exons = set([])
-        for isof in gl.isoforms.itervalues():
-            for exon in isof.exons:
-                gl.exons.add(exon)
-        gl.exons = list(gl.exons)
-        gl.exons.sort(key=ExonKey)
         
         exon_overlap = False
         
