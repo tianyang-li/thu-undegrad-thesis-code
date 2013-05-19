@@ -67,9 +67,27 @@ def main():
         if exon_overlap:
             continue
         
+        if len(gl.exons) != 1:
+            continue
         
+        exon = gl.exons[0]
+        
+        reads = [r for r in bam.fetch(gl.chrom, exon.start, exon.end)]
 
-            
+        if not reads:
+            continue
+        
+        no_splice = True
+        for r in reads:
+            if r.alen > 75:
+                no_splice = False
+        if not no_splice:
+            continue
+
+        
+        
+        
+    
             
 if __name__ == '__main__':
     main()
