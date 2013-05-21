@@ -18,6 +18,8 @@ import getopt
 import pysam
 
 from utils.build_gene_loci_0 import get_loci
+from utils.uniform_test_0 import pval
+from utils import len_est_0
 
 
 def main():
@@ -72,6 +74,9 @@ def main():
         
         exon = gl.exons[0]
         
+        if exon.start + 75 > exon.end:
+            continue
+        
         reads = [r for r in bam.fetch(gl.chrom, exon.start, exon.end)]
 
         if not reads:
@@ -84,10 +89,32 @@ def main():
         if not no_splice:
             continue
 
+        reads_pos = [r.pos for r in reads]
+        if len(reads_pos) < 2:
+            continue
+        reads_pos.sort()
+        
+        if (reads_pos[0] < exon.start
+            or reads_pos[-1] + 75 >= exon.end):
+            continue
+        
+        eff_len = exon.end - exon.start - 75
+        eff_start = exon.start
+        eff_end = exon.end - 75
+        cov_lambda = len(reads_pos) / eff_len
+        
+        counts = [0 for _ in xrange(eff_end - eff_start)]
+        for pos in reads_pos:
+            counts[pos - eff_start] += 1
+        counts_str = ",".join("%d" % c for c in counts)
+        
+        cur_pval = pval(reads_pos, eff_start, eff_end)
+        
+        est_len = len_est_0.single_reads(reads_pos)
+        
+        print eff_start, eff_end, eff_len, cov_lambda, reads_pos[0], reads_pos[-1], counts_str, cur_pval, est_len
         
         
-        
-    
             
 if __name__ == '__main__':
     main()
