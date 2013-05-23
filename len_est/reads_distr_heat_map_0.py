@@ -80,7 +80,8 @@ def main():
     
     fig, ax = plt.subplots()
     ax.imshow(reads_distr)
-    
+    plt.xlabel("position on isoform")
+    plt.ylabel("isoform length")
     plt.show()    
 
     
