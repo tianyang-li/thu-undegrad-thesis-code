@@ -20,7 +20,7 @@ import getopt
 from itertools import izip_longest, izip
 
 import matplotlib.pyplot as plt
-import numpy as np
+from statsmodels.distributions import ECDF
 
 
 def main():
@@ -67,10 +67,21 @@ def main():
         new_tmp = map(lambda x: x / tmp_sum * i, rd)
         reads_distr[i] = new_tmp
     
-    fig, ax = plt.subplots()
-    ax.pcolor(np.array(reads_distr))
+    reads_vals = []
     
-    plt.show()
+    for rd in reads_distr:
+        reads_vals.extend(val for val in rd if val > 0)
+    
+    rv_distr = ECDF(reads_vals)
+    
+    for rd, i in izip(reads_distr[1:], xrange(1, MAX_LEN + 1)):
+        new_tmp = list(rv_distr(rd))
+        reads_distr[i] = new_tmp
+    
+    fig, ax = plt.subplots()
+    ax.imshow(reads_distr)
+    
+    plt.show()    
 
     
 if __name__ == '__main__':
