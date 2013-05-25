@@ -103,6 +103,19 @@ def main():
         eff_end = exon.end - 75
         cov_lambda = len(reads_pos) / eff_len
         
+        #TODO: reverse reads_pos for negative strand
+        if exon.strand == '-':
+            """
+            s <= x < e
+            
+            reverse
+            
+            s + e - x - 1
+            """
+            new_reads_pos = map(lambda rp: eff_start + eff_end - rp - 1, reads_pos)
+            reads_pos = new_reads_pos
+            reads_pos.reverse()
+        
         counts = [0 for _ in xrange(eff_end - eff_start)]
         for pos in reads_pos:
             counts[pos - eff_start] += 1

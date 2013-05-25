@@ -12,7 +12,7 @@ from sort_0 import cmp_to_key
 $start $end (integers)
 same as python convetion
 """
-class Exon(namedtuple('Exon', ['start', 'end'])):
+class Exon(namedtuple('Exon', ['start', 'end', 'strand'])):
     def __hash__(self):
         return hash((self.start, self.end))
     
@@ -92,7 +92,8 @@ def get_loci(gtf_file):
                                                        id=isof_id,
                                                        gene_id=gene_id))
                  .exons.append(Exon(start=int(line[3]) - 1,
-                                    end=int(line[4]) - 1)))
+                                    end=int(line[4]) - 1,
+                                    strand=line[6])))
         
         for gl in gene_loci.itervalues():
             
