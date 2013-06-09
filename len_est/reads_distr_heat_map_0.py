@@ -21,6 +21,7 @@ from itertools import izip_longest, izip
 
 import matplotlib.pyplot as plt
 from statsmodels.distributions import ECDF
+from scipy.stats.mstats import mquantiles
 
 
 def main():
@@ -79,9 +80,13 @@ def main():
         reads_distr[i] = new_tmp
     
     fig, ax = plt.subplots()
-    ax.imshow(reads_distr)
-    plt.xlabel("position on isoform")
-    plt.ylabel("isoform length")
+    cax = ax.imshow(reads_distr)
+    plt.xlabel("position on transcript (5' -> 3')")
+    plt.ylabel("transcript length")
+    reads_vals_quants = list(mquantiles(reads_vals, prob=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]))
+    cbar = plt.colorbar(cax, ticks=list(rv_distr(reads_vals_quants)))
+    cbar.ax.set_yticklabels(map(lambda f: "%f" % f, reads_vals_quants))
+    cbar.set_label("normalized read count at each position")
     plt.show()    
 
     
